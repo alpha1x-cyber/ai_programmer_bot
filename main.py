@@ -1,6 +1,7 @@
 import logging
 from telegram import Update, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from flask import Flask
 
 # إعداد نظام تسجيل الأخطاء
 logging.basicConfig(
@@ -46,7 +47,7 @@ def start(update: Update, context: CallbackContext) -> None:
         "يمكنك إرسال الكود أو وصف المشكلة وسأحاول مساعدتك في حلها 🚀.\n\n"
         "💡 **اللغات المدعومة حاليًا:**\n"
         f"- {', '.join(SUPPORTED_LANGUAGES)}\n\n"
-        "اكتب فقط الكود أو المشكلة وسأبدأ في مساعدتك!\n
+        "اكتب فقط الكود أو المشكلة وسأبدأ في مساعدتك!\n"
         "المبرمج بوت المهندس ياسين"
     )
 
@@ -101,6 +102,13 @@ def handle_message(update: Update, context: CallbackContext) -> None:
 def error(update: Update, context: CallbackContext) -> None:
     logger.warning('تسبب التحديث التالي بخطأ: "%s"', context.error)
 
+# إعداد Flask
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "🚀 تم تشغيل البوت بنجاح! يمكنك الآن استخدامه على Telegram."
+
 # الدالة الرئيسية لتشغيل البوت
 def main():
     # ضع رمز التوكن الخاص بالبوت هنا
@@ -119,6 +127,10 @@ def main():
 
     # تسجيل الأخطاء
     dispatcher.add_error_handler(error)
+
+    # تشغيل Flask في خيط منفصل
+    from threading import Thread
+    Thread(target=app.run, kwargs={"host": "0.0.0.0", "port": 5000}).start()
 
     # بدء تشغيل البوت
     updater.start_polling()
